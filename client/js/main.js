@@ -44,8 +44,8 @@ var ThreeSbViewport = function( x, y, width, height, rotation, worldWidth, world
 	this.renderer.setClearColor( 0xffffff );
 	this.container.appendChild( this.renderer.domElement );
 	this.camera = new THREE.OrthographicCamera(window.innerWidth,0,window.innerHeight, 0, 1, 10000); //THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
-	this.camera.position.z = 400;
-	console.log( this.world );
+	//this.camera.position.z = 400;
+
 	this.scene 	= new THREE.Scene();
 	this.scene.add(this.camera);
 
@@ -57,9 +57,21 @@ var ThreeSbViewport = function( x, y, width, height, rotation, worldWidth, world
 	var geometry = new THREE.CubeGeometry( 50, 50, 50 );
 	var material = new THREE.MeshNormalMaterial();
 
-	this.testMesh = new THREE.Mesh( geometry, material );
-	this.scene.add( this.testMesh );
+	this.meshes = [];
 
+	var numMeshes = 20;
+	var div = 360 / numMeshes;
+	var index = 0;
+	var rad = 200;
+
+	for ( var i =0; i < 360; i += div ){
+		this.meshes[index] = new THREE.Mesh( geometry, material );
+		this.scene.add( this.meshes[index] );
+		this.meshes[index].position.set( Math.sin( div * i ) * rad, Math.cos( div * i ) * rad, 0);
+		console.log( this.meshes[index].position.x, this.meshes[index].position.y );
+		index++;
+		rad *= .95;
+	}
 	this.refreshViewport();
 
 	// start render loop!
@@ -79,15 +91,17 @@ ThreeSbViewport.prototype.setViewport = function(x,y,width,height,rotate) {
 
 	// pretty much just need this for retina pros at the moment
 	var mult = this.renderer.devicePixelRatio;
-	console.log( mult)
 	//this.renderer.setViewport( x * mult, y * mult, width * mult, height * mult );
 	//this.renderer.setScissor( x * mult, y * mult, width * mult, height * mult );
 	//this.renderer.enableScissorTest ( true );
+
 	this.camera.position.x = -x * mult;
-	this.camera.position.y = y * mult;
-	//this.camera.position.x = x + width/2;
-	//this.camera.position.y = y + height/2;
+	this.camera.position.y = -y * mult;
+	// this.camera.rotation = ( Math.PI / 180 * rotate);
+	this.renderer.setSize( width, height );
 	this.setWorld( this.world.width, this.world.height );
+
+	console.log( this.world );
 }
 
 /**
@@ -108,8 +122,10 @@ ThreeSbViewport.prototype.animate = function() {
 };
 
 ThreeSbViewport.prototype.render = function() {
-	this.testMesh.rotation.x = Math.sin(Date.now() * .00001) * 180;
-	this.testMesh.rotation.y = Math.sin(Date.now() * .00002) * 180;
+	for ( var i=0; i<this.meshes.length; i++){
+		this.meshes[i].rotation.x = Math.sin(Date.now() * .00001 + i) * 180;
+		this.meshes[i].rotation.y = Math.sin(Date.now() * .00002 + i) * 180;
+	}
 	//this.camera.lookAt( this.scene.position );
 
 	this.renderer.render( this.scene, this.camera );
