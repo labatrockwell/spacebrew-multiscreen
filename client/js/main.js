@@ -43,8 +43,14 @@ var ThreeSbViewport = function( x, y, width, height, rotation, worldWidth, world
 	this.renderer.setSize( window.innerWidth, window.innerHeight );
 	this.renderer.setClearColor( 0xffffff );
 	this.container.appendChild( this.renderer.domElement );
-	this.camera = new THREE.OrthographicCamera(window.innerWidth,0,window.innerHeight, 0, 1, 10000); //THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
-	//this.camera.position.z = 400;
+
+	this.isOrtho = false;
+	if ( this.isOrtho ){
+		this.camera = new THREE.OrthographicCamera(window.innerWidth,0,window.innerHeight, 0, 1, 10000);
+	} else {
+		this.camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 10000 );
+		this.camera.position.z = 400;
+	}
 
 	this.scene 	= new THREE.Scene();
 	this.scene.add(this.camera);
@@ -87,21 +93,16 @@ ThreeSbViewport.prototype = Object.create( SpacebrewViewport.prototype );
 ThreeSbViewport.prototype.setViewport = function(x,y,width,height,rotate) {
 	if (!this.scene) return;
 
-	console.log( x, y, width, height);
-
 	// pretty much just need this for retina pros at the moment
 	var mult = this.renderer.devicePixelRatio;
-	//this.renderer.setViewport( x * mult, y * mult, width * mult, height * mult );
-	//this.renderer.setScissor( x * mult, y * mult, width * mult, height * mult );
-	//this.renderer.enableScissorTest ( true );
 
-	this.camera.position.x = -x * mult;
-	this.camera.position.y = -y * mult;
-	// this.camera.rotation = ( Math.PI / 180 * rotate);
+	if ( this.isOrtho ){
+		this.camera.position.x = -x * this.world.width * mult;
+		this.camera.position.y = -y * this.world.width *mult;
+	} else {
+		this.camera.setViewOffset( this.world.width, this.world.height, x * this.world.width, y * this.world.height, width, height);
+	}
 	this.renderer.setSize( width, height );
-	this.setWorld( this.world.width, this.world.height );
-
-	console.log( this.world );
 }
 
 /**
@@ -110,10 +111,9 @@ ThreeSbViewport.prototype.setViewport = function(x,y,width,height,rotate) {
 ThreeSbViewport.prototype.setWorld = function( worldWidth, worldHeight ) {
 	if (!this.scene) return;
 
-	// this.camera.aspect = worldWidth / worldHeight;
-	// this.camera.updateProjectionMatrix();
-	// this.camera.position.set(worldWidth/2.0, worldHeight/2.0,400);
-	//this.scene.position.set( worldWidth / 2.0, worldHeight/2.0,0);
+	if ( !this.isOrtho ){
+		this.camera.setViewOffset( this.world.width, this.world.height, this.x * this.world.width, this.y * this.world.height, this.width, this.height);
+	}
 }
 
 ThreeSbViewport.prototype.animate = function() {

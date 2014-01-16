@@ -73,14 +73,7 @@ SpacebrewViewport.prototype.onCustomMessage = function( name, value ) {
 			this.setWorld( this.world.width, this.world.height );
 		}
 	} else {
-		// x and y are normalized to their respective world values
-		if ( name == "x" ){
-			this[name] = Number(value) * this.world.width;
-		} else if ( name == "y" ){
-			this[name] = Number(value) * this.world.height;
-		} else {
-			this[name] = Number(value);
-		}
+		this[name] = Number(value);
 		this.refreshViewport();
 	}
 };
